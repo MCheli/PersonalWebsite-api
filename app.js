@@ -9,26 +9,26 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(awsServerlessExpressMiddleware.eventContext());
 
-app.get('/api/', function(req, res) {
+app.get('/', function(req, res) {
   res.send({
     "Output": "Hello World!"
   });
 });
 
-app.post('/api/', function(req, res) {
+app.post('/', function(req, res) {
   res.send({
     "Output": "Hello World!"
   });
 });
 
-app.get('/api/contact', function(req, res) {
+app.get('/contact', function(req, res) {
   console.log(req.apiGateway.event);
   res.send({
     "Output": "Hello World!"
   });
 });
 
-app.post('/api/contact', function(req, res) {
+app.post('/contact', function(req, res) {
   console.log(req.apiGateway.event);
   res.send({
     "Output": "Hello World!"
