@@ -1,66 +1,36 @@
-Welcome to the AWS CodeStar sample web service
-==============================================
+## Example
 
-This sample code helps get you started with a simple Express web service
-deployed by AWS CloudFormation to AWS Lambda and Amazon API Gateway.
+In addition to a basic Lambda function and Express server, the `example` directory includes a [Swagger file](http://swagger.io/specification/), [CloudFormation template](https://aws.amazon.com/cloudformation/aws-cloudformation-templates/) with [Serverless Application Model (SAM)](https://github.com/awslabs/serverless-application-model), and helper scripts to help you set up and manage your application.
 
-What's Here
------------
+### Steps for running the example
+This guide assumes you have already [set up an AWS account](http://docs.aws.amazon.com/AmazonSimpleDB/latest/DeveloperGuide/AboutAWSAccounts.html) and have the latest version of the [AWS CLI](https://aws.amazon.com/cli/) installed.
 
-This sample includes:
+1. From your preferred project directory: `git clone https://github.com/awslabs/aws-serverless-express.git && cd aws-serverless-express/examples/basic-starter`.
+2. Run `npm run config -- --account-id="<accountId>" --bucket-name="<bucketName>" [--region="<region>" --function-name="<functionName>"]` to configure the example, eg. `npm run config -- --account-id="123456789012" --bucket-name="my-unique-bucket"`. This modifies `package.json`, `simple-proxy-api.yaml` and `cloudformation.yaml` with your account ID, bucket, region and function name (region defaults to `us-east-1` and function name defaults to `AwsServerlessExpressFunction`). If the bucket you specify does not yet exist, the next step will create it for you. This step modifies the existing files in-place; if you wish to make changes to these settings, you will need to modify `package.json`, `simple-proxy-api.yaml` and `cloudformation.yaml` manually.
+3. Run `npm run setup` (Windows users: `npm run win-setup`) - this installs the node dependencies, creates an S3 bucket (if it does not already exist), packages and deploys your serverless Express application to AWS Lambda, and creates an API Gateway proxy API.
+4. After the setup command completes, open the AWS CloudFormation console https://console.aws.amazon.com/cloudformation/home and switch to the region you specified. Select the `AwsServerlessExpressStack` stack, then click the `ApiUrl` value under the __Outputs__ section - this will open a new page with your running API. The API index lists the resources available in the example Express server (`app.js`), along with example `curl` commands.
 
-* README.md - this file
-* buildspec.yml - this file is used by AWS CodeBuild to package your
-  service for deployment to AWS Lambda
-* app.js - this file contains the sample Node.js code for the web service
-* index.js - this file contains the AWS Lambda handler code
-* template.yml - this file contains the AWS Serverless Application Model (AWS SAM) used
-  by AWS CloudFormation to deploy your service to AWS Lambda and Amazon API
-  Gateway.
-* tests/ - this directory contains unit tests for your application
-* template-configuration.json - this file contains the project ARN with placeholders used for tagging resources with the project ID
+See the sections below for details on how to migrate an existing (or create a new) Node.js project based on this example. If you would prefer to delete AWS assets that were just created, simply run `npm run delete-stack` to delete the CloudFormation Stack, including the API and Lambda Function. If you specified a new bucket in the `config` command for step 1 and want to delete that bucket, run `npm run delete-bucket`.
 
-What Do I Do Next?
-------------------
+### Creating or migrating a Node.js project based on the example
 
-If you have checked out a local copy of your repository you can start making
-changes to the sample code.  We suggest making a small change to app.js first,
-so you can see how changes pushed to your project's repository are automatically
-picked up by your project pipeline and deployed to AWS Lambda and Amazon API Gateway.
-(You can watch the pipeline progress on your AWS CodeStar project dashboard.)
-Once you've seen how that works, start developing your own code, and have fun!
+To use this example as a base for a new Node.js project:
 
-To run your tests locally, go to the root directory of the
-sample code and run the `npm test` command, which
-AWS CodeBuild also runs through your `buildspec.yml` file.
+1. Copy the files in the `examples/basic-starter` directory into a new project directory (`cp -r ./examples/basic-starter ~/projects/my-new-node-project`). If you have not already done so, follow the [steps for running the example](#steps-for-running-the-example) (you may want to first modify some of the resource names to something more project-specific, eg. the CloudFormation stack, Lambda function, and API Gateway API).
+2. After making updates to `app.js`, simply run `npm run package-deploy` (Windows users: `npm run win-package-deploy`).
 
-To test your new code during the release process, modify the existing tests or
-add tests to the tests directory. AWS CodeBuild will run the tests during the
-build stage of your project pipeline. You can find the test results
-in the AWS CodeBuild console.
+To migrate an existing Node server:
 
-Learn more about AWS CodeBuild and how it builds and tests your application here:
-https://docs.aws.amazon.com/codebuild/latest/userguide/concepts.html
+1. Copy the following files from the `example` directory: `api-gateway-event.json`, `cloudformation.yaml`, `lambda.js`, and `simple-proxy-api.yaml`. Additionally, copy the `scripts` and `config` sections of `example/package.json` into your existing `package.json` - this includes many helpful commands to manage your AWS serverless assets and perform _basic_ local simulation of API Gateway and Lambda. If you have not already done so, follow the [steps for running the example](#steps-for-running-the-example) (be sure to copy over `scripts/configure.js`. You may want to first modify some of the resource names to something more project-specific, eg. the CloudFormation stack, Lambda function, and API Gateway API).
+2. From your existing project directory, run `npm install --save aws-serverless-express`.
+3. Modify `lambda.js` to import your own server configuration (eg. change `require('./app')` to `require('./server')`). You will need to ensure you export your app configuration from the necessary file (eg. `module.exports = app`). This library takes your app configuration and listens on a Unix Domain Socket for you, so you can remove your call to `app.listen()` (if you have a `server.listen` callback, you can provide it as the second parameter in the `awsServerlessExpress.createServer` method).
+4. Modify the `CodeUri` property of the Lambda function resource in `cloudformation.yaml` to point to your application directory (e.g. `CodeUri: ./src`). If you are using a build tool (e.g. Gulp, Grunt, Webpack, Rollup, etc.), you will instead want to point to your build output directory.
+5. Run `npm run package-deploy` (Windows users: `npm run win-package-deploy`) to package and deploy your application.
 
-Learn more about AWS Serverless Application Model (AWS SAM) and how it works here:
-https://github.com/awslabs/serverless-application-model/blob/master/HOWTO.md
+To perform a basic, local simulation of API Gateway and Lambda with your Node server, update `api-gateway-event.json` with some values that are valid for your server (`httpMethod`, `path`, `body` etc.) and run `npm run local`. AWS Lambda uses NodeJS 4.3 LTS, and it is recommended to use the same version for testing purposes.
 
-AWS Lambda Developer Guide:
-http://docs.aws.amazon.com/lambda/latest/dg/deploying-lambda-apps.html
+If you need to make modifications to your API Gateway API, modify `simple-proxy-api.yaml` and run `npm run package-deploy`. If your API requires CORS, be sure to modify the two `options` methods defined in the Swagger file, otherwise you can safely remove them. To modify your other AWS assets, make your changes to `cloudformation.yaml` and run `npm run package-deploy`. Alternatively, you can manage these assets via the AWS console.
 
-Learn more about AWS CodeStar by reading the user guide, and post questions and
-comments about AWS CodeStar on our forum.
+## Node.js version
 
-User Guide: http://docs.aws.amazon.com/codestar/latest/userguide/welcome.html
-
-Forum: https://forums.aws.amazon.com/forum.jspa?forumID=248
-
-What Should I Do Before Running My Project in Production?
-------------------
-
-AWS recommends you review the security best practices recommended by the framework
-author of your selected sample application before running it in production. You
-should also regularly review and apply any available patches or associated security
-advisories for dependencies used within your application.
-
-Best Practices: https://docs.aws.amazon.com/codestar/latest/userguide/best-practices.html?icmpid=docs_acs_rm_sec
+This example was written against Node.js version 6.10
