@@ -11,27 +11,25 @@ app.use(awsServerlessExpressMiddleware.eventContext());
 
 app.get('/', function(req, res) {
   res.send({
-    "Output": "Hello World!"
+    "Output": "Hello World! from / GET"
   });
 });
 
 app.post('/', function(req, res) {
   res.send({
-    "Output": "Hello World!"
+    "Output": "Hello World! from / POST"
   });
 });
 
 app.get('/contact', function(req, res) {
-  console.log(req.apiGateway.event);
   res.send({
-    "Output": "Hello World!"
+    "Output": "Hello World! from /contact GET"
   });
 });
 
 app.post('/contact', function(req, res) {
-  console.log(req.apiGateway.event);
   res.send({
-    "Output": "Hello World!"
+    "Output": "Hello World! from /contact POST"
   });
 });
 
