@@ -1,13 +1,13 @@
 {
-  "name": "aws-serverless-express-example",
+  "name": "personal-website-api",
   "version": "2.1.1",
   "description": "Example application for running a Node Express app on AWS Lambda using Amazon API Gateway.",
   "main": "lambda.js",
   "config": {
-    "s3BucketName": "aws-codestar-us-east-1-446013728167-personalwebsite-pipe",
+    "s3BucketName": "personal-website-api-deploy",
     "region": "us-east-1",
-    "cloudFormationStackName": "AwsServerlessExpressStack",
-    "functionName": "PersonalWebsiteApi",
+    "cloudFormationStackName": "PersonalWebsiteApiStack",
+    "functionName": "PersonalWebsiteApiLambda",
     "accountId": "446013728167"
   },
   "scripts": {
